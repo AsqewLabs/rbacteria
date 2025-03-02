@@ -6,7 +6,7 @@ import (
     "net/http"
     "strings"
 
-    rbac "github.com/asqewlabs/rbacteria"
+    "github.com/asqewlabs/rbacteria"
 )
 
 func adminDashboard( w http.ResponseWriter, req *http.Request) {
@@ -24,7 +24,7 @@ func Chain(f http.HandlerFunc, middlewares ...func(http.HandlerFunc) http.Handle
 
 func main() {
     // Initialize RBAC
-    rbacManager := rbac.NewRBAC()
+    rbacManager := rbacteria.NewRBAC()
 
     //Load roles file
     if err := rbacManager.LoadJSONFile("roles.json"); err != nil {
@@ -37,7 +37,7 @@ func main() {
         return strings.Split(req.Header.Get("Roles"), ",")
     }).WithLogger(&log.Logger{})
 
-    7/Set up your server mux
+    //Set up your server mux
     mux := http.NewServeMux()
 
     //Set up your routes, with RBAC Middleware
