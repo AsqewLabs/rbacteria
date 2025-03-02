@@ -1,0 +1,6 @@
+{
+    "it_manager": {
+        "permissions": ["viewit.dashboard", "read:system.settings"],
+        "inherits": []
+    }
+}
