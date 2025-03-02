@@ -13,13 +13,21 @@ func adminDashboard( w http.ResponseWriter, req *http.Request) {
     fmt.Fprintf(w, "Admin Dashboard")
 }
 
+/* Function Chain from https://gowebexamples.com/advanced-middleware/ */
+func Chain(f http.HandlerFunc, middlewares ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
+    for _, m := range middlewares {
+        f = m(f)
+    }
+    return f
+}
+
 
 func main() {
     // Initialize RBAC
     rbacManager := rbac.NewRBAC()
 
     //Load roles file
-    if err := rbacManager.LoadJSONFile("/path/to/roles.json"); err != nil {
+    if err := rbacManager.LoadJSONFile("roles.json"); err != nil {
         panic(err)
     }
 
@@ -27,14 +35,14 @@ func main() {
     //(If you want to override the default, which you probably do)
     rbacManager.WithExtractor(func(req *http.Request)[]string{
         return strings.Split(req.Header.Get("Roles"), ",")
-    })
+    }).WithLogger(&log.Logger{})
 
-    //Set up your server mux
+    7/Set up your server mux
     mux := http.NewServeMux()
 
     //Set up your routes, with RBAC Middleware
-    mux.Handle("GET /admin/dashboard", rbacManager.Middleware("view:admin.dashboard", adminDashboard))
+    mux.Handle("GET /admin/dashboard", Chain(adminDashboard, rbacManager.Middleware("view:admin.dashboard")))
 
-    log.Fatal(http.ListenAndServe("localhost:80", mux))
+    log.Fatal(http.ListenAndServe("localhost:8087", mux))
 
 }

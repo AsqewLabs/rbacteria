@@ -1,0 +1,14 @@
+{
+    "hr_manager": {
+        "permissions": ["view:admin.dashboard", "read:admin.settings", "write:admin.settings"],
+        "inherits": []
+    },
+    "it_manager": {
+        "permissions": ["view:it.dashboard", "read:system.settings"],
+        "inherits": []
+    },
+    "sysadmin": {
+        "inherits": ["hr_manager", "it_manager"],
+        "permissions": ["write:system.settings", "view:sysadmin.dashboard"]
+    }
+}

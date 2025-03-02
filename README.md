@@ -39,7 +39,7 @@ Create a `roles.json` file with role definitions:
 }
 ```
 
-### 2. Using rbacteria in a web application
+### 2. Load roles, set up role extraction function and logging
 
 ```go
 package main
@@ -52,13 +52,9 @@ import (
     "github.com/asqewlabs/rbacteria"
 )
 
-func adminDashboard( w http.ResponseWriter, req *http.Request) {
-    fmt.Fprintf(w, "Admin Dashboard")
-}
-
 func main() {
     // Initialize RBAC
-    rbacManager := rbac.NewRBAC()
+    rbacManager := rbacteria.NewRBAC()
     
     //Load roles file
     if err := rbacManager.LoadJSONFile("/path/to/roles.json"); err != nil {
@@ -71,13 +67,16 @@ func main() {
         return strings.Split(req.Header.Get("Roles"), ",")
     })
     
+    rbacManager.WithLogger(&log.Logger{})
+    
     //Set up your server mux
     mux := http.NewServeMux()
     
-    /*Working on example*
-    
 }
 ```
+### 3. Example http server
+
+See [examples](https://github.com/AsqewLabs/rbacteria/tree/main/examples) for a full example
 
 ## API Reference
 
