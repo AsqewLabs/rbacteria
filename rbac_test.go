@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	rbac "asqew.io/rbacteria"
+	rbac "github.com/asqewlabs/rbacteria"
 )
 
 func assertStrings(t testing.TB, got, want string) {
