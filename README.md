@@ -1,6 +1,6 @@
 # rbacteria
 
-##A lightweight and flexible Role-Based Access Control (RBAC) library for Go, designed to handle hierarchical roles, permissions, and inheritance.
+## A lightweight and flexible Role-Based Access Control (RBAC) library for Go, designed to handle hierarchical roles, permissions, and inheritance.
 
 ## Features
 
@@ -39,7 +39,7 @@ Create a `roles.json` file with role definitions:
 }
 ```
 
-### 2. Load the Roles in Your Application
+### 2. Using rbacteria in a web application
 
 ```go
 package main
@@ -74,100 +74,85 @@ func main() {
     //Set up your server mux
     mux := http.NewServeMux()
     
-    //Set up your routes, with RBAC Middleware
-    mux.Handle("GET /admin/dashboard", rbacManager.Middleware(func (w http.Writer, req *http.Request) {
-        
-    }))
+    /*Working on example*
     
-    log.Fatal(http.ListenAndServe("localhost:80", mux))
-
-    // Example permission check
-    role := "sysadmin"
-    permission := "write:system.settings"
-
-    if rbacManager.Can(role, permission) {
-        fmt.Printf("%s has permission to %s\n", role, permission)
-    } else {
-        fmt.Printf("%s is NOT allowed to %s\n", role, permission)
-    }
 }
-```
-
-### 3. Using RBAC in a Web API (Example with Gorilla Mux)
-
-```go
-package main
-
-import (
-    "encoding/json"
-    "log"
-    "net/http"
-    "os"
-
-    "github.com/gorilla/mux"
-    "github.com/yourusername/rbac"
-)
-
-var rbacManager *rbac.RBAC
-
-func checkPermissionHandler(w http.ResponseWriter, r *http.Request) {
-    role := r.URL.Query().Get("role")
-    action := r.URL.Query().Get("action")
-
-    response := map[string]bool{"allowed": rbacManager.Can(role, action)}
-    json.NewEncoder(w).Encode(response)
-}
-
-func main() {
-    jsonData, err := os.ReadFile("roles.json")
-    if err != nil {
-        log.Fatalf("Failed to read roles.json: %v", err)
-    }
-
-    rbacManager = rbac.NewRBAC()
-    if err := rbacManager.LoadJSON(jsonData); err != nil {
-        log.Fatalf("Failed to load RBAC roles: %v", err)
-    }
-
-    router := mux.NewRouter()
-    router.HandleFunc("/check-permission", checkPermissionHandler).Methods("GET")
-
-    log.Println("RBAC API running on port 8080")
-    log.Fatal(http.ListenAndServe(":8080", router))
-}
-```
-
-#### Test the API
-
-```sh
-curl "http://localhost:8080/check-permission?role=sysadmin&action=write:system.settings"
 ```
 
 ## API Reference
 
-### `rbac.NewRBAC()`
+### `rbacteria.NewRBAC()`
 
-Creates a new RBAC instance.
+Creates a new RBAC instance with default values
 
-### `rbac.LoadJSON(data []byte) error`
+#### Example:
+```go
+    rbac := rbacteria.NewRBAC()
+```
 
-Loads role definitions from JSON data.
+### `rbacteria.LoadJSONFile(filename string) error`
 
-### `rbac.Can(role, permission string) bool`
+Loads role definitions from JSON file.
 
-Checks if a role has a specific permission.
+#### Example:
+```go
+    rbac := rbacteria.NewRBAC()
+    rbac.LoadJSONFile("rbac.json")
+```
+
+### `rbacteria.WithExtractor(extractor func(req *http.Request) []string)`
+
+Sets the function to use to identify user roles from a request
+
+#### Example:
+```go
+    rbac = rbacteria.NewRBAC().WithExtractor(func(req *http.Request)[]string {
+        return []string{"role1", "role2"}
+    })
+```
+
+### `rbacteria.WithLogger(logger *log.Logger)`
+
+Sets the logger to use to log errors, access attempts, etc
+
+#### Example:
+```go
+    rbac := rbacteria.NewRBAC().WithLogger(&log.Logger{})
+```
+
+### `rbacteria.HasPermission(assignedRoles []string, requiredPermission string, visited map[string]bool) bool`
+
+Checks if a user has the required permission to access a resource
+
+#### Example:
+```go
+    rbac := rbacteria.NewRBAC()
+    if rbac.HasPermission([]string{"roleA"}, "actionB:resourceB", make(map[string]bool)) {
+        log.Println("Permission Granted")
+    } else {
+        log.Println("Permission Denied")
+    }
+```
+
+### `rbacteria.Middleware(permission string) func(http.HandlerFunc) http.HandlerFunc`
+
+Middleware to validate permissions at endpoints
+
+#### Example:
+```go
+    //TODO
+```
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.en.html). 
+
 
 ## Contributing
 
 Pull requests are welcome! Please open an issue to discuss any changes before submitting a PR.
 
 ## Author
-
-[Your Name](https://github.com/yourusername)
 
 Will
 

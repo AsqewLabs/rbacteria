@@ -40,7 +40,7 @@ func (r *RBAC) WithExtractor(extractor func(req *http.Request) []string) *RBAC {
 func (r *RBAC) Middleware(permission string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(f http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, req *http.Request) {
-			roles := getRoles(req)
+			roles := r.RoleExtractor(req)
 			if r.HasPermission(roles, permission, make(map[string]bool)) {
 				r.Logger.Printf("granting access to %s from permission %s via role %s", req.URL, permission, roles)
 				f(w, req)
