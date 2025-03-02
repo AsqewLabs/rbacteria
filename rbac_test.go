@@ -99,14 +99,11 @@ func Test_RBACMiddleware(t *testing.T) {
 		w.Write([]byte(http.StatusText(http.StatusOK)))
 	})
 
-	getRoles := func(req *http.Request) []string {
-		return strings.Split(req.Header.Get("Roles"), ",")
-	}
 	// Middleware that checks for "admin" permission
-	adminDashboard := r.Middleware("view:admin.dashboard", getRoles)
-	itDashboard := r.Middleware("view:it.dashboard", getRoles)
-	sysadminDashboard := r.Middleware("view:sysadmin.dashboard", getRoles)
-	inherited := r.Middleware("view:it.dashboard", getRoles)
+	adminDashboard := r.Middleware("view:admin.dashboard")
+	itDashboard := r.Middleware("view:it.dashboard")
+	sysadminDashboard := r.Middleware("view:sysadmin.dashboard")
+	inherited := r.Middleware("view:it.dashboard")
 
 	// Create test cases
 	tests := []struct {
@@ -150,4 +147,13 @@ func Test_LoadFile(t *testing.T) {
 	assertThrowsError(t, rbac.NewRBAC().LoadJSONFile("doesnotexist").Error(), "open doesnotexist: no such file or directory")
 	assertThrowsError(t, rbac.NewRBAC().LoadJSONFile("invalid_json.jsonx").Error(), "invalid character 'i' looking for beginning of value")
 	assertThrowsError(t, rbac.NewRBAC().LoadJSONFile("invalid_rbac.json").Error(), "error loading permission for role it_manager: invalid format")
+}
+
+func Test_WithFunctions(t *testing.T) {
+	r := rbac.NewRBAC().WithExtractor(func(req *http.Request) []string {
+		return []string{"test1", "test2"}
+	}).WithLogger(nil)
+
+	assertStrings(t, r.RoleExtractor(nil)[0], "test1")
+	assertStrings(t, r.RoleExtractor(nil)[1], "test2")
 }
