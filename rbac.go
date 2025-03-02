@@ -13,16 +13,31 @@ import (
 type RBAC struct {
 	Roles  map[string]Role
 	Logger *log.Logger
+	RoleExtractor func(r *http.Request) []string
 }
 
 func NewRBAC() *RBAC {
 	return &RBAC{
 		Roles:  make(map[string]Role),
 		Logger: log.Default(),
+		RoleExtractor: func(req *http.Request) []string {
+			return strings.Split(req.Header.Get("Roles"), ",")
+		},
 	}
 }
 
-func (r *RBAC) Middleware(permission string, getRoles func(r *http.Request) []string) func(http.HandlerFunc) http.HandlerFunc {
+
+func (r *RBAC) WithLogger(logger *log.Logger) *RBAC {
+	r.Logger = logger
+	return r
+}
+
+func (r *RBAC) WithExtractor(extractor func(req *http.Request) []string) *RBAC {
+	r.RoleExtractor = extractor
+	return r
+}
+
+func (r *RBAC) Middleware(permission string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(f http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, req *http.Request) {
 			roles := getRoles(req)
