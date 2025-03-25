@@ -11,24 +11,23 @@ import (
 )
 
 type RBAC struct {
-	Roles  map[string]Role
-	Logger *log.Logger
+	Roles         map[string]Role
+	Logger        func(v ...any)
 	RoleExtractor func(r *http.Request) []string
 }
 
 func NewRBAC() *RBAC {
 	return &RBAC{
 		Roles:  make(map[string]Role),
-		Logger: log.Default(),
+		Logger: log.Println,
 		RoleExtractor: func(req *http.Request) []string {
 			return strings.Split(req.Header.Get("Roles"), ",")
 		},
 	}
 }
 
-
-func (r *RBAC) WithLogger(logger *log.Logger) *RBAC {
-	r.Logger = logger
+func (r *RBAC) WithLogger(loggingFunction func(v ...any)) *RBAC {
+	r.Logger = loggingFunction
 	return r
 }
 
@@ -42,10 +41,9 @@ func (r *RBAC) Middleware(permission string) func(http.HandlerFunc) http.Handler
 		return func(w http.ResponseWriter, req *http.Request) {
 			roles := r.RoleExtractor(req)
 			if r.HasPermission(roles, permission, make(map[string]bool)) {
-				r.Logger.Printf("granting access to %s from permission %s via role %s", req.URL, permission, roles)
 				f(w, req)
 			} else {
-				r.Logger.Printf("denied access to %s due to missing permission %s", req.URL, permission)
+				r.Logger("denied access to ", req.URL, " due to missing permission ", permission)
 				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			}
 		}
@@ -152,3 +150,4 @@ func (p *Permission) Load(input string) error {
 func (p *Permission) String() string {
 	return p.Action + ":" + p.Resource
 }
+
